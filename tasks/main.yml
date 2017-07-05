@@ -1,0 +1,38 @@
+---
+# tasks file for ansible_role_bigip_utils
+- name: upload utils to each bigip 
+  template:
+    src: "files/utils"
+    dest: "/home/{{ user }}"
+    owner: "{{ user }}"
+    mode: 0770
+  tags: 
+    - "extract"
+    - "search"
+
+- name: extract config
+  shell: "source /home/{{ user }}/utils && search_conf {{ pattern }}"
+  args:
+    executable: "/bin/bash"
+  register: result
+  tags: 
+    - "extract"
+
+- debug: 
+    msg: "{{ result.stdout.split('\n') }}"
+  tags: 
+    - "extract"
+
+- name: search
+  shell: "source /home/{{ user }}/utils && search {{ pattern }}"
+  args:
+    executable: "/bin/bash"
+  #ignore_errors: yes
+  register: result
+  tags: 
+    - "search"
+
+- debug: 
+    msg: "{{ result.stdout.split('\n') }}"
+  tags: 
+    - "search"

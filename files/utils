@@ -1,0 +1,37 @@
+#!/bin/bash
+
+search() {
+#search pattern in the config files of the BIGIP device
+searchspace="/config /config/partitions/*"
+for f in $searchspace; do
+        if [ -d "$f" ]; then
+                if ls $f/bigip.conf &> /dev/null; then
+                        grep -iH $1 $f/bigip.conf
+                fi
+        fi
+done
+return 0
+}
+
+upload() {
+#upload file to all managed BIGIP device 
+echo "Enter password, then press Enter"
+read -s password
+hosts=$(cat inventory/hosts | awk '/'bigip'/,/^\s*$/{print $1}' | grep -e "^[0-9].")
+for host in $hosts; do
+        echo $host
+        sshpass -p $password scp $1 cofanog@$host:$1
+done
+}
+
+search_conf() {
+searchspace="/config /config/partitions/*"
+for f in $searchspace; do
+        if [ -d "$f" ]; then
+                if ls $f/bigip.conf &> /dev/null; then
+                        sed -nr "/^[a-z].*$1/,/^}/p" $f/bigip.conf
+                fi
+        fi
+done
+}
+
